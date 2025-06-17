@@ -43,9 +43,9 @@ pip install -r requirements.txt
 ```
 
 Compile the C++ extension modules:
-
-   sbatch install.sh
-
+```
+sbatch install.sh
+```
 ## Datasets
 
 The details of used datasets can be found in [DATASET.md](./DATASET.md) (we thank the authors of PoinTr).
