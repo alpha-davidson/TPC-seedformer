@@ -23,6 +23,8 @@ If you find our work useful in your research, please cite:
 
 ## Installation
 
+THIS VERSION IS A MODIFIED ONE FOR ALPhA DAVIDSON WITH THE CLUSTER - see original version for non-modified version
+
 The code has been tested on one configuration:
 
 - python == 3.6.8
@@ -32,12 +34,17 @@ The code has been tested on one configuration:
 - open3d
 
 ```
+conda create -n seedformer python=3.6.8
+conda activate seedformer
+```
+
+```
 pip install -r requirements.txt
 ```
 
 Compile the C++ extension modules:
 
-    sh install.sh
+   sbatch install.sh
 
 ## Datasets
 
