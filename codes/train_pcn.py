@@ -24,6 +24,9 @@ from easydict import EasyDict as edict
 from importlib import import_module
 from pprint import pprint
 from manager import Manager
+print("GPUs available:", torch.cuda.device_count())
+print("CUDA available:", torch.cuda.is_available())
+print("Using", torch.cuda.device_count(), "GPUs")
 
 
 TRAIN_NAME = os.path.splitext(os.path.basename(__file__))[0]
@@ -66,8 +69,8 @@ def PCNConfig():
     __C.DATASETS.SHAPENET.CATEGORY_FILE_PATH         = './datasets/ShapeNet.json'
     __C.DATASETS.SHAPENET.N_RENDERINGS               = 8
     __C.DATASETS.SHAPENET.N_POINTS                   = 2048
-    __C.DATASETS.SHAPENET.PARTIAL_POINTS_PATH        = '<*PATH-TO-YOUR-DATASET*>/PCN/%s/partial/%s/%s/%02d.pcd'
-    __C.DATASETS.SHAPENET.COMPLETE_POINTS_PATH       = '<*PATH-TO-YOUR-DATASET*>/PCN/%s/complete/%s/%s.pcd'
+    __C.DATASETS.SHAPENET.PARTIAL_POINTS_PATH  = '/home/DAVIDSON/cihallinan/test_data/ShapeNetCompletion/%s/partial/%s/%s/%02d.pcd'
+    __C.DATASETS.SHAPENET.COMPLETE_POINTS_PATH = '/home/DAVIDSON/cihallinan/test_data/ShapeNetCompletion/%s/complete/%s/%s.pcd'
 
     #
     # Dataset
@@ -82,7 +85,7 @@ def PCNConfig():
     #
     __C.CONST                                        = edict()
 
-    __C.CONST.NUM_WORKERS                            = 8
+    __C.CONST.NUM_WORKERS                            = 0
     __C.CONST.N_INPUT_POINTS                         = 2048
 
     #
@@ -105,14 +108,14 @@ def PCNConfig():
     # Train
     #
     __C.TRAIN                                        = edict()
-    __C.TRAIN.BATCH_SIZE                             = 48
-    __C.TRAIN.N_EPOCHS                               = 400
+    __C.TRAIN.BATCH_SIZE                             = 8
+    __C.TRAIN.N_EPOCHS                               = 5
     __C.TRAIN.SAVE_FREQ                              = 25
     __C.TRAIN.LEARNING_RATE                          = 0.001
     __C.TRAIN.LR_MILESTONES                          = [50, 100, 150, 200, 250]
     __C.TRAIN.LR_DECAY_STEP                          = 50
-    __C.TRAIN.WARMUP_STEPS                           = 200
-    __C.TRAIN.WARMUP_EPOCHS                          = 20
+    __C.TRAIN.WARMUP_STEPS                           = 10
+    __C.TRAIN.WARMUP_EPOCHS                          = 1
     __C.TRAIN.GAMMA                                  = .5
     __C.TRAIN.BETAS                                  = (.9, .999)
     __C.TRAIN.WEIGHT_DECAY                           = 0
@@ -152,7 +155,8 @@ def train_net(cfg):
                                                     collate_fn=utils.data_loaders.collate_fn,
                                                     pin_memory=True,
                                                     shuffle=True,
-                                                    drop_last=False)
+                                                    drop_last=True)
+    print("Loaded training data:", len(train_data_loader.dataset))
     val_data_loader = torch.utils.data.DataLoader(dataset=val_dataset_loader.get_dataset(
         utils.data_loaders.DatasetSubset.TEST),
                                                   batch_size=cfg.TRAIN.BATCH_SIZE,
@@ -187,7 +191,7 @@ def train_net(cfg):
     model = Model.__dict__[args.arch_model](up_factors=cfg.NETWORK.UPSAMPLE_FACTORS)
     # print(model)
     if torch.cuda.is_available():
-        model = torch.nn.DataParallel(model).cuda()
+        model = model.cuda()
 
     # load existing model
     if 'WEIGHTS' in cfg.CONST:
@@ -200,10 +204,11 @@ def train_net(cfg):
     ##################
     # Training Manager
     ##################
-
+    print(">>> Creating Manager object...")
     manager = Manager(model, cfg)
 
     # Start training
+    print("Starting training loop...")
     manager.train(model, train_data_loader, val_data_loader, cfg)
 
 

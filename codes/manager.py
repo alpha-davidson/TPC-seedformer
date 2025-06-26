@@ -55,6 +55,7 @@ class Manager:
         :param cfg: configuration object
         """
 
+        print(">>> Manager __init__ started")
         ############
         # Parameters
         ############
@@ -151,6 +152,7 @@ class Manager:
             n_batches = len(train_data_loader)
             learning_rate = self.optimizer.param_groups[0]['lr']
             for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader):
+                print(f">>> Loaded batch {batch_idx}")
                 for k, v in data.items():
                     data[k] = utils.helpers.var_or_cuda(v)
 
@@ -195,24 +197,24 @@ class Manager:
                 '[Epoch %d/%d] LearningRate = %f EpochTime = %.3f (s) Losses = %s' %
                 (epoch_idx, cfg.TRAIN.N_EPOCHS, learning_rate, epoch_end_time - epoch_start_time, ['%.4f' % l for l in [avg_cdc, avg_cd1, avg_cd2, avg_cd3, avg_partial]]))
 
-            # Validate the current model
-            cd_eval = self.validate(cfg, model=model, val_data_loader=val_data_loader)
-            self.train_record('Testing scores = {:.4f}'.format(cd_eval))
-
-            # Save checkpoints
-            if cd_eval < self.best_metrics:
-                self.best_epoch = epoch_idx
-                file_name = 'ckpt-best.pth' if cd_eval < self.best_metrics else 'ckpt-epoch-%03d.pth' % epoch_idx
-                output_path = os.path.join(cfg.DIR.CHECKPOINTS, file_name)
-                torch.save({
-                    'epoch_index': epoch_idx,
-                    'best_metrics': cd_eval,
-                    'model': model.state_dict()
-                }, output_path)
-
-                print('Saved checkpoint to %s ...' % output_path)
-                if cd_eval < self.best_metrics:
-                    self.best_metrics = cd_eval
+#            # Validate the current model
+#            cd_eval = self.validate(cfg, model=model, val_data_loader=val_data_loader)
+#            self.train_record('Testing scores = {:.4f}'.format(cd_eval))
+#
+#            # Save checkpoints
+#            if cd_eval < self.best_metrics:
+#                self.best_epoch = epoch_idx
+#                file_name = 'ckpt-best.pth' if cd_eval < self.best_metrics else 'ckpt-epoch-%03d.pth' % epoch_idx
+#                output_path = os.path.join(cfg.DIR.CHECKPOINTS, file_name)
+#                torch.save({
+#                    'epoch_index': epoch_idx,
+#                    'best_metrics': cd_eval,
+#                    'model': model.state_dict()
+#                }, output_path)
+#
+#                print('Saved checkpoint to %s ...' % output_path)
+#                if cd_eval < self.best_metrics:
+#                    self.best_metrics = cd_eval
 
         # training end
         self.train_record_file.close()
